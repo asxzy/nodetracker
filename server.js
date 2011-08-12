@@ -1,0 +1,41 @@
+// 引入文件
+var bencode = require("./bencode.js").bencode,
+url = require('url');
+// 种子列表结构体
+peers = [];
+
+
+
+require("http").createServer(function (req, res) {
+	var _GET = url.parse(req.url,true);
+	var GET = _GET.query;
+	res.response = function (body) {
+		body = bencode(body);
+		res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Content-Length": body.length});
+		console.log(body.length);
+		console.log(body);
+		res.end(body);
+	};
+	if(_GET.pathname == '/announce'){
+		var info_hash = GET.info_hash;
+		console.log('test infohash :::');
+		console.log(peers[info_hash]);
+		if(peers[info_hash] == undefined)peers[info_hash] = [];
+		peers[info_hash][GET.peer_id] = {'ip' : req.socket.remoteAddress, 'port' : parseInt(GET.port)};
+		// announce 结构体
+		var announce = 
+		{
+			'interval' : 10,/*
+			'min interval' : 5,
+			'complete' : 1,
+			'incomplete' : 100,*/
+			'peers' : peers[info_hash]
+		};
+		//console.log(announce.peers);
+		res.response(announce);
+	}
+	console.log(peers);
+	res.end();
+}).listen(80);
+
+setTimeout(function(){console.log('show peers:::');console.log(peers);},15000);
