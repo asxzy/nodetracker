@@ -12,16 +12,13 @@ require("http").createServer(function (req, res) {
 	res.response = function (body) {
 		body = bencode(body);
 		res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Content-Length": body.length});
-		console.log(body.length);
-		console.log(body);
 		res.end(body);
 	};
 	if(_GET.pathname == '/announce'){
 		var info_hash = GET.info_hash;
-		console.log('test infohash :::');
-		console.log(peers[info_hash]);
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 		if(peers[info_hash] == undefined)peers[info_hash] = [];
-		peers[info_hash][GET.peer_id] = {'ip' : req.socket.remoteAddress, 'port' : parseInt(GET.port)};
+		peers[info_hash][GET.peer_id] = {'ip' : ip, 'port' : parseInt(GET.port)};
 		// announce 结构体
 		var announce = 
 		{
@@ -31,11 +28,7 @@ require("http").createServer(function (req, res) {
 			'incomplete' : 100,*/
 			'peers' : peers[info_hash]
 		};
-		//console.log(announce.peers);
 		res.response(announce);
 	}
-	console.log(peers);
 	res.end();
 }).listen(80);
-
-setTimeout(function(){console.log('show peers:::');console.log(peers);},15000);
